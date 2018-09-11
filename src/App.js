@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import './App.css';
 import Navbar from './components/Navbar';
-import Home from './components/Home';
+// import Home from './components/Home';
+import Form from './components/Form';
 import './App.css';
 
 class App extends Component {
@@ -14,7 +15,8 @@ class App extends Component {
     return (
       <div className="App">
         <Navbar/>
-        <Home name={"salitha"} status={"Undergraduate"} user={user}/>
+        {/*<Home name={"salitha"} status={"Undergraduate"} user={user}/>*/}
+        <Form/>
       </div>
     );
   }
