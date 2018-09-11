@@ -1,7 +1,13 @@
 import React, { Component } from 'react';
 
 class Form extends Component {
-state = {products: []}
+  constructor(props){
+    super();
+    this.state = {
+      products: []
+    }
+  }
+
   componentDidMount() {
     fetch('http://localhost:4000/api/getProducts')
       .then(res => res.json())
@@ -23,7 +29,7 @@ state = {products: []}
                       <label>PRODUCT</label>
                       <select className="form-control" id="product-select" name="product_select">
                         {this.state.products.map((pro) =>
-                            <option>{pro}</option>
+                            <option key={pro}>{pro}</option>
                         )}
                       </select>
                   </div>
