@@ -3,15 +3,21 @@ import React, { Component } from 'react';
 export class Home extends Component {
   constructor(props){
     super();
-    this.name = props.name;
+    // this.name = props.name;
+    this.state = {
+      name: props.name
+    }
   }
 
   changeName(){
-    this.name = "pool";
-    console.log(this.name);
+    // this.name = "pool";
+    this.setState({
+      name: "pool"
+    });
+    console.log(this.state.name);
   }
   render() {
-    console.log(this.props);
+    // console.log(this.props);
     return (
       <div>
         <p>My name is {this.props.name}</p>
@@ -25,7 +31,7 @@ export class Home extends Component {
           {this.props.user.hobbies.map((hobby,i) => <li className="list-group-item" key={i}>{hobby}</li>)}
         </ul>
         <hr/>
-        <p>Change Name : {this.name}</p>
+        <p>Change Name : {this.state.name}</p>
         <button className="btn btn-primary" onClick={() => this.changeName()}>click me</button>
       </div>
     );
