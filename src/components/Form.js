@@ -15,40 +15,22 @@ class Form extends Component {
     this.handleTestChange = this.handleTestChange.bind(this);
   }
 
-  componentDidMount() {
-    fetch('http://localhost:4000/api/getProducts')
-      .then(res => res.json())
-      .then(products => this.setState({ products }));
-  }
-
   // componentDidMount() {
-  //   axios.get('http://localhost:4000/api/getProducts')
-      // .then(res => {
-      //   const products = res.data;
-      //   this.setState({products});
-      // })
+  //   fetch('http://localhost:4000/api/products')
+  //     .then(res => res.json())
+  //     .then(products => this.setState({ products }));
   // }
 
-  // componentWillReceiveProps(props) {
-  //   this.setState(props);
-  // }
+  componentDidMount() {
+    axios.get('http://localhost:4000/api/products')
+      .then(res => {
+        const products = res.data;
+        this.setState({products});
+      })
+  }
 
   handleSubmit(event) {
      event.preventDefault();
-     // fetch('http://localhost:4000/api/search', {
-     //   method: "POST",
-       // headers: {
-       //   Accept: "Access-Control-Allow-Headers",
-       //   "Content-Type": "application/json"
-       // },
-       // body: {
-       //   product_select: this.state.product_select,
-       //   test_suite_select: this.state.test_suite_select
-       // }
-     //
-     // }).then(res => res.json())
-     //   .then(res =>console.log(res))
-     //   .catch(error => console.error('Error:', error));
      var config = {
        headers: {
          Accept: "Access-Control-Allow-Headers",
@@ -59,8 +41,13 @@ class Form extends Component {
      {
        product_select: this.state.product_select,
        test_suite_select: this.state.test_suite_select
-     }, config
-     ).then(res =>console.log(res))
+     }, config)
+     .then(res => {
+        console.log(res);
+        this.setState({results: res.data.objArr});
+        console.log(this.state.results);
+     }
+    )
  }
 
   handleProdcutChange(event) {
@@ -73,7 +60,7 @@ class Form extends Component {
 
   render() {
     var style = {
-          marginTop: '80px'
+      marginTop: '80px'
     };
 
     return (
@@ -81,35 +68,56 @@ class Form extends Component {
       <div className="container" style={style}>
         <form onSubmit={this.handleSubmit}>
           <div className="row">
-          <div className="col">
-              <div className="form-group">
-                  <label>PRODUCT</label>
-                  <select className="form-control" id="product-select" name="product_select" onChange={this.handleProdcutChange}>
-                    {this.state.products.map((pro) =>
-                        <option key={pro} value={pro}>{pro}</option>
-                    )}
-                  </select>
-              </div>
-          </div>
-          <div className="col">
-              <div className="form-group">
-                  <label>TEST SUITE</label>
-                  <select className="form-control" id="test-suite-select" name="test_suite_select" onChange={this.handleTestChange}>
-                      <option value="regress">regression</option>
-                      <option value="bench">benchmark</option>
-                  </select>
-              </div>
-          </div>
+            <div className="col">
+                <div className="form-group">
+                    <label>PRODUCT</label>
+                    <select className="form-control" id="product-select" name="product_select" onChange={this.handleProdcutChange}>
+                      {this.state.products.map((pro) =>
+                          <option key={pro} value={pro}>{pro}</option>
+                      )}
+                    </select>
+                </div>
+            </div>
+            <div className="col">
+                <div className="form-group">
+                    <label>TEST SUITE</label>
+                    <select className="form-control" id="test-suite-select" name="test_suite_select" onChange={this.handleTestChange}>
+                        <option value="regress">regression</option>
+                        <option value="bench">benchmark</option>
+                    </select>
+                </div>
+            </div>
           </div>
           <input type="submit" value="submit" className="btn btn-primary" style={{float: 'left'}}/>
         </form>
-        {this.state.results.map((result) =>
-            <option key={result} value={result}>{result}</option>
-        )}
+        <br />
+        <br />
+        <hr />
+        <div className="row" style={{marginLeft: '-3px'}}>
+          <table className="table table-striped table-bordered">
+            <thead>
+            <tr>
+              <th>version</th>
+              <th>nodata</th>
+              <th>nolevel</th>
+            </tr>
+            </thead>
+            <tbody>
+              {this.state.results.map((pro, i) => {
+                  return (
+                    <tr key={i.toString()}>
+                      <td>{pro.version}</td>
+                      <td>{pro.nodata}</td>
+                      <td>{pro.nolevel}</td>
+                    </tr>
+                  )
+                }
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-
     );
-
   }
 }
 
