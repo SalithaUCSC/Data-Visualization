@@ -23,10 +23,10 @@ class Form extends Component {
 
   // componentDidMount() {
   //   axios.get('http://localhost:4000/api/getProducts')
-  //     .then(res => {
-  //       const products = res.data;
-  //       this.setState({products});
-  //     })
+      // .then(res => {
+      //   const products = res.data;
+      //   this.setState({products});
+      // })
   // }
 
   // componentWillReceiveProps(props) {
@@ -35,22 +35,33 @@ class Form extends Component {
 
   handleSubmit(event) {
      event.preventDefault();
-     fetch('http://localhost:4000/api/search', {
-       method: "POST",
-       mode: 'cors',
+     // fetch('http://localhost:4000/api/search', {
+     //   method: "POST",
+       // headers: {
+       //   Accept: "Access-Control-Allow-Headers",
+       //   "Content-Type": "application/json"
+       // },
+       // body: {
+       //   product_select: this.state.product_select,
+       //   test_suite_select: this.state.test_suite_select
+       // }
+     //
+     // }).then(res => res.json())
+     //   .then(res =>console.log(res))
+     //   .catch(error => console.error('Error:', error));
+     var config = {
        headers: {
-         Accept: "Access-Control-Allow-Origin",
-         'Content-Type': 'application/json'
-       },
-       body: {
-         product_select: this.state.product_select,
-         test_suite_select: this.state.test_suite_select
+         Accept: "Access-Control-Allow-Headers",
+         "Content-Type": "application/json"
        }
-
-     }).then((res) => res.json())
-       .then(results => this.setState({ results }))
+     };
+     axios.post('http://localhost:4000/api/search',
+     {
+       product_select: this.state.product_select,
+       test_suite_select: this.state.test_suite_select
+     }, config
+     ).then(res =>console.log(res))
  }
-
 
   handleProdcutChange(event) {
     this.setState({product_select: event.target.value});
