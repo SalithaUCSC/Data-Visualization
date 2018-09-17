@@ -1,9 +1,22 @@
-svg rect {
-    fill: orange;
+svg {
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
 }
 
-svg text {
-     fill:white;
-    font: 10px sans-serif;
-    text-anchor: end;
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+}
+
+path.domain {
+  stroke: none;
+}
+
+.y .tick line {
+  stroke: #ddd;
+}
+#chart {
+  display: block;
+  margin: auto;
 }
