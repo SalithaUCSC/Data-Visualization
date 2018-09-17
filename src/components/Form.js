@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import * as d3 from "d3";
-import { scaleBand, scaleOrdinal, scaleLinear, schemeCategory20, axisBottom } from 'd3-scale';
-import { select } from 'd3-selection';
+// import { scaleBand, scaleOrdinal, scaleLinear, schemeCategory20, axisBottom } from 'd3-scale';
+// import { select } from 'd3-selection';
 import './Form.css';
 
 class Form extends Component {
@@ -59,129 +59,108 @@ class Form extends Component {
     }
 
     drawChart(data){
-      var data = [
-             {
-                  "interest_rate":"< 4%",
-                  "Default":60,
-                  "Charge-off":20,
-                  "Current":456,
-                  "30 days":367.22,
-                  "60 days":222,
-                  "90 days":198,
-                  "Default":60
+      console.log("from function ",data);
+      var margin = {top: 20, right: 160, bottom: 35, left: 30};
+      var width = 960 - margin.left - margin.right,
+          height = 500 - margin.top - margin.bottom;
 
-               },
-               {
-                  "interest_rate":"4-7.99%",
-                  "Charge-off":2,
-                  "Default":30,
-                  "Current":271,
-                  "30 days":125,
-                  "60 days":78,
-                  "90 days":72
+      var svg = d3.select("body")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        var data = data;
 
+      // Transpose the data into layers
+      var dataset = d3.layout.stack()(["nodata", "nolevel"].map(function(y) {
+        return data.map(function(d) {
+          return {x: d.version, y: +d[y]};
+        });
 
-               }
-      ];
+      }));
+console.log(dataset[0]);
 
-      	var margin = {
-      				top: 20,
-      				right: 20,
-      				bottom: 40,
-      				left: 60
-      			},
-      				width = 450 - margin.left - margin.right,
-      				height = 315 - margin.top - margin.bottom,
-      				that = this;
-              // d3.scaleBand()
-              //     .range([range])
-              //     .round([round]);
+      // Set x, y and colors
+      var x = d3.scale.ordinal()
+        .domain(dataset[0].map(function(d) { return d.x; }))
+        .rangeRoundBands([10, width-10], 0.02);
 
-      			var x = d3.scaleBand().range([0, width]).paddingInner(0.3);
+      var y = d3.scale.linear()
+        .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
+        .range([height, 0]);
 
-      			var y = d3.scaleLinear().rangeRound([height, 0]);
-
-      			var color = d3.scaleOrdinal(d3.schemeCategory10);
-
-      			var xAxis = d3.axisBottom().scaleOrdinal(x).orient("bottom");
-
-      			var yAxis = d3.axisLeft().scaleLinear(y).orient("left").tickFormat(d3.format(".0%"));
-
-      			var svg = d3.select("#chart").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-      			color.domain(d3.keys(data[0]).filter(function (key) {
-      				return key !== "interest_rate";
-      			}));
+      var colors = ["#f2b447", "#d9d574"];
 
 
-      			data.forEach(function (d) {
-      				var y0 = 0;
+      // Define and draw axes
+      var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .ticks(5)
+        .tickSize(-width, 0, 0)
+        .tickFormat( function(d) { return d } );
 
-      				d.rates = color.domain().map(function (name) {
-      					console.log();;
-      					return {
-      						name: name,
-      						y0: y0,
-      						y1: y0 += +d[name],
-      						amount: d[name]
-      					};
-      				});
-      				d.rates.forEach(function (d) {
-      					d.y0 /= y0;
-      					d.y1 /= y0;
-      				});
+      var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
 
-      				console.log(data);
-      			});
+      svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
 
-      			data.sort(function (a, b) {
-      				return b.rates[0].y1 - a.rates[0].y1;
-      			});
-
-      			x.domain(data.map(function (d) {
-      				return d.interest_rate;
-      			}));
-
-      			svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + height + ")").call(xAxis);
-
-      			svg.append("g").attr("class", "y axis").call(yAxis);
-
-      			var interest_rate = svg.selectAll(".interest-rate").data(data).enter().append("g").attr("class", "interest-rate").attr("transform", function (d) {
-      				return "translate(" + x(d.interest_rate) + ",0)";
-      			});
-
-      			interest_rate.selectAll("rect").data(function (d) {
-      				return d.rates;
-      			}).enter().append("rect").attr("width", x.rangeBand()).attr("y", function (d) {
-      				return y(d.y1);
-      			}).attr("height", function (d) {
-      				return y(d.y0) - y(d.y1);
-      			}).style("fill", function (d) {
-      				return color(d.name);
-      			}).on('mouseover', function (d) {
-      				var total_amt;
-      				total_amt = d.amount;
+      svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
 
 
+      // Create groups for each series, rects for each segment
+      var groups = svg.selectAll("g.cost")
+        .data(dataset)
+        .enter().append("g")
+        .attr("class", "cost")
+        .style("fill", function(d, i) { return colors[i]; });
 
-      				console.log('----');
-      				d3.select(".chart-tip").style('opacity', '1').html('Amount: <strong>$' + that.numberWithCommas(total_amt.toFixed(2)) + '</strong>');
+      var rect = groups.selectAll("rect")
+        .data(function(d) { return d; })
+        .enter()
+        .append("rect")
+        .attr("x", function(d) { return x(d.x); })
+        .attr("y", function(d) { return y(d.y0 + d.y); })
+        .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
+        .attr("width", 100)
+        // .on("mouseover", function() { tooltip.style("display", null); })
+        // .on("mouseout", function() { tooltip.style("display", "none"); })
+        // .on("mousemove", function(d) {
+        //   var xPosition = d3.mouse(this)[0] - 15;
+        //   var yPosition = d3.mouse(this)[1] - 25;
+        //   tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+        //   tooltip.select("text").text(d.y);
+        // });
+        var legend = svg.selectAll(".legend")
+          .data(colors)
+          .enter().append("g")
+          .attr("class", "legend")
+          .attr("transform", function(d, i) { return "translate(30," + i * 19 + ")"; });
 
-      			}).on('mouseout', function () {
-      				d3.select(".chart-tip").style('opacity', '0');
-      			});
+        legend.append("rect")
+          .attr("x", width - 18)
+          .attr("width", 18)
+          .attr("height", 18)
+          .style("fill", function(d, i) {return colors.slice().reverse()[i];});
 
-      			var legend = svg.selectAll(".legend").data(color.domain().slice().reverse()).enter().append("g").attr("class", "legend").attr("transform", function (d, i) {
-      				return "translate(" + i * -70 + ",283)";
-      			});
-
-
-      			legend.append("rect").attr("x", width + -53).attr("width", 10).attr("height", 10).style("fill", color);
-
-      			legend.append("text").attr("x", width - 40).attr("y", 5).attr("width", 40).attr("dy", ".35em").style("text-anchor", "start").text(function (d) {
-      				return d;
-      			});
-
+        legend.append("text")
+          .attr("x", width + 5)
+          .attr("y", 9)
+          .attr("dy", ".35em")
+          .style("text-anchor", "start")
+          .text(function(d, i) {
+            switch (i) {
+              case 0: return "nolevel";
+              case 1: return "nodata";
+            }
+          });
 
       };
 
