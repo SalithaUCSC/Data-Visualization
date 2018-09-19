@@ -1,11 +1,8 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import * as d3 from "d3";
-// import { scaleBand, scaleOrdinal, scaleLinear, schemeCategory20, axisBottom } from 'd3-scale';
-// import { select } from 'd3-selection';
-import './Form.css';
+import * as d3 from 'd3';
 
-class Form extends Component {
+class Chart extends Component {
     constructor(props){
         super();
         this.state = {
@@ -25,7 +22,7 @@ class Form extends Component {
             const products = res.data;
             this.setState({products});
         })
-    }
+    };
 
     handleSubmit(event) {
         event.preventDefault();
@@ -56,80 +53,77 @@ class Form extends Component {
 
     handleTestChange(event){
         this.setState({test_suite_select: event.target.value});
-    }
+    };
 
     drawChart(data){
-      console.log("from function ",data);
-      var margin = {top: 20, right: 160, bottom: 35, left: 30};
-      var width = 960 - margin.left - margin.right,
-          height = 500 - margin.top - margin.bottom;
 
-      var svg = d3.select("body")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-        var data = data;
+        var margin = {top: 20, right: 160, bottom: 35, left: 30};
+        var width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
 
-      // Transpose the data into layers
-      var dataset = d3.layout.stack()(["nodata", "nolevel"].map(function(y) {
-        return data.map(function(d) {
-          return {x: d.version, y: +d[y]};
-        });
+        var svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-      }));
-console.log(dataset[0]);
+        // Transpose the data into layers
+        var dataset = d3.layout.stack()(["nodata", "nolevel"].map(function(y) {
+            return data.map(function(d) {
+                return {x: d.version, y: +d[y]};
+            });
 
-      // Set x, y and colors
-      var x = d3.scale.ordinal()
-        .domain(dataset[0].map(function(d) { return d.x; }))
-        .rangeRoundBands([10, width-10], 0.02);
+        }));
 
-      var y = d3.scale.linear()
-        .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
-        .range([height, 0]);
+        // Set x, y and colors
+        var x = d3.scale.ordinal()
+            .domain(dataset[0].map(function(d) { return d.x; }))
+            .rangeRoundBands([10, width-10], 0.02);
 
-      var colors = ["#f2b447", "#d9d574"];
+        var y = d3.scale.linear()
+            .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
+            .range([height, 0]);
+
+        var colors = ["#f2b447", "#d9d574"];
 
 
-      // Define and draw axes
-      var yAxis = d3.svg.axis()
-        .scale(y)
-        .orient("left")
-        .ticks(5)
-        .tickSize(-width, 0, 0)
-        .tickFormat( function(d) { return d } );
+        // Define and draw axes
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .ticks(5)
+            .tickSize(0.5, 0.5)
+            .tickFormat( function(d) { return d } );
 
-      var xAxis = d3.svg.axis()
-        .scale(x)
-        .orient("bottom")
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom").tickSize(0.5, 0.5)
 
-      svg.append("g")
-        .attr("class", "y axis")
-        .call(yAxis);
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
 
-      svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(-10," + height + ")")
+            .call(xAxis);
 
+        // Create groups for each series, rects for each segment
+        var groups = svg.selectAll("g.product-group")
+            .data(dataset)
+            .enter().append("g")
+            .attr("class", "product-group")
+            .style("fill", function(d, i) { return colors[i]; });
 
-      // Create groups for each series, rects for each segment
-      var groups = svg.selectAll("g.cost")
-        .data(dataset)
-        .enter().append("g")
-        .attr("class", "cost")
-        .style("fill", function(d, i) { return colors[i]; });
-
-      var rect = groups.selectAll("rect")
-        .data(function(d) { return d; })
-        .enter()
-        .append("rect")
-        .attr("x", function(d) { return x(d.x); })
-        .attr("y", function(d) { return y(d.y0 + d.y); })
-        .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
-        .attr("width", 100)
+        var rect = groups.selectAll("rect")
+            .data(function(d) { return d; })
+            .enter()
+            .append("rect")
+            .attr("x", function(d) { return x(d.x); })
+            .attr("y", function(d) { return y(d.y0 + d.y); })
+            .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
+            .attr("width", x.rangeBand)
         // .on("mouseover", function() { tooltip.style("display", null); })
         // .on("mouseout", function() { tooltip.style("display", "none"); })
         // .on("mousemove", function(d) {
@@ -139,35 +133,35 @@ console.log(dataset[0]);
         //   tooltip.select("text").text(d.y);
         // });
         var legend = svg.selectAll(".legend")
-          .data(colors)
-          .enter().append("g")
-          .attr("class", "legend")
-          .attr("transform", function(d, i) { return "translate(30," + i * 19 + ")"; });
+            .data(colors)
+            .enter().append("g")
+            .attr("class", "legend")
+            .attr("transform", function(d, i) { return "translate(30," + i * 19 + ")"; });
 
         legend.append("rect")
-          .attr("x", width - 18)
-          .attr("width", 18)
-          .attr("height", 18)
-          .style("fill", function(d, i) {return colors.slice().reverse()[i];});
+            .attr("x", width - 18)
+            .attr("width", 18)
+            .attr("height", 18)
+            .style("fill", function(d, i) {return colors.slice().reverse()[i];});
 
         legend.append("text")
-          .attr("x", width + 5)
-          .attr("y", 9)
-          .attr("dy", ".35em")
-          .style("text-anchor", "start")
-          .text(function(d, i) {
+            .attr("x", width + 5)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .style("text-anchor", "start")
+            .text(function(d, i) {
             switch (i) {
-              case 0: return "nolevel";
-              case 1: return "nodata";
+                case 0: return "nolevel";
+                case 1: return "nodata";
             }
-          });
+        });
 
-      };
+    };
 
     render() {
         var style = {
             marginTop: '80px'
-        };
+    };
 
     return (
 
@@ -222,6 +216,7 @@ console.log(dataset[0]);
                     </tbody>
                 </table>
             </div>
+            <hr/>
             <div className="row">
               <div id="chart">
 
@@ -232,4 +227,4 @@ console.log(dataset[0]);
     }
 }
 
-export default Form;
+export default Chart;
