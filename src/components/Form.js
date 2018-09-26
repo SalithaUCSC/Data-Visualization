@@ -64,9 +64,9 @@ class Chart extends Component {
 
     drawChart(data){
 
-        var margin = {top: 100, right: 160, bottom: 35, left: 50};
+        var margin = {top: 100, right: 160, bottom: 35, left: 70};
         var width = 1200 - margin.left - margin.right,
-            height = 500 - margin.top - margin.bottom;
+            height = 1000 - margin.top - margin.bottom;
 
         var svg = d3.select("#chart")
             .append("svg")
@@ -98,20 +98,18 @@ class Chart extends Component {
                         for (var j = 0; j < dataset[i].length; j++) {
                             if (!(dataset[i][j].y > 0)) {
                                 dataset[i][j].y = 0;
-
                             }
                             else if (!(dataset[i][j].y0 > 0)) {
                                 dataset[i][j].y0 = 0;
                             }
-
-                            }   
-                        }
+                        }   
+                    }
                     return d.y0 + d.y;
                 });
             })])
             .range([height, 0]);
 
-        var colors = ["#63C09F", "#55A8BC"];
+        var colors = ["#3498DB", "#1ABC9C"];
 
         // Define and draw axes
         var yAxis = d3.svg.axis()
@@ -132,13 +130,23 @@ class Chart extends Component {
         svg.append("g")
             .attr('class', 'grid')
             .attr("class", "y axis")
-            .call(yAxis);
+            .call(yAxis)
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -80)
+            .attr("dy", ".3em")
+            .style("text-anchor", "end")
+            .text("Total Count");
 
         svg.append("g")
             .attr('class', 'grid')
             .attr("class", "x axis")
             .attr("transform", "translate(0," + height + ")")
-            .call(xAxis);
+            .call(xAxis)
+            .append("text")             
+      .attr('x', 600)
+      .attr('y', 0)
+      .text("Date");
 
         // Create groups for each series, rects for each segment
         var groups = svg.selectAll("g.product-group")
@@ -201,7 +209,8 @@ class Chart extends Component {
     render() {
 
         var style = {
-            marginTop: '80px'
+            marginTop: '80px',
+            minHeight: '3000px'
     };
 
 
@@ -212,7 +221,7 @@ class Chart extends Component {
                 <div className="row">
                     <div className="col">
                         <div className="form-group">
-                            <label>PRODUCT</label>
+                            <label><i className="fas fa-wrench"></i> PRODUCT</label>
                             <select className="form-control" id="product-select" name="product_select" onChange={this.handleProdcutChange}>
                             {this.state.products.map((pro) =>
                                 <option key={pro} value={pro}>{pro}</option>
@@ -223,7 +232,7 @@ class Chart extends Component {
 
                     <div className="col">
                         <div className="form-group">
-                            <label>TEST SUITE</label>
+                            <label><i className="fas fa-toolbox"></i> TEST SUITE</label>
                             <select className="form-control" id="test-suite-select" name="test_suite_select" onChange={this.handleTestChange}>
                                 <option value="regress">regression</option>
                                 <option value="bench">benchmark</option>
@@ -244,16 +253,21 @@ class Chart extends Component {
                       <th>version</th>
                       <th>nolevel</th>
                       <th>nodata</th>
+                      <th>Total</th>
                     </tr>
                     </thead>
                     <tbody>
-                        {this.state.results.map((pro, i) => {
+                        {this.state.results.map((pro, i) => { 
+                            pro.nodata = pro.nodata || 0;
+                            pro.nolevel = pro.nolevel || 0;
+                           
                             return (
 
                                 <tr key={i.toString()}>
                                     <td>{pro.version}</td>
                                     <td>{!(pro.nolevel>0) ? 0 : pro.nolevel}</td>
                                     <td>{!(pro.nodata>0) ? 0 : pro.nodata}</td>
+                                    <td>{pro.nolevel + pro.nodata}</td>
                                 </tr>
 
                             )}
