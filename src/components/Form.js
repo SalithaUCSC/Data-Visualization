@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import * as d3 from 'd3';
+import ChildChart from './ChildChart';
+
 
 class Chart extends Component {
     constructor(props){
-        super();
+        super(props);
         this.state = {
             products: [],
             results: [],
@@ -41,11 +43,11 @@ class Chart extends Component {
             console.log(res);
             this.setState({results: res.data.objArr});
             console.log(this.state.results);
-            var data = this.state.results;
-            this.drawChart(data);
-        }
-    )
+            this.drawChart(this.state.results);
+
+        })
     }
+
 
     handleProdcutChange(event) {
         this.setState({product_select: event.target.value});
@@ -55,10 +57,15 @@ class Chart extends Component {
         this.setState({test_suite_select: event.target.value});
     };
 
+    updateChart(){
+        console.log('update')
+        // this.drawChart(this.state.results);
+    }
+
     drawChart(data){
 
-        var margin = {top: 20, right: 160, bottom: 35, left: 30};
-        var width = 960 - margin.left - margin.right,
+        var margin = {top: 100, right: 160, bottom: 35, left: 50};
+        var width = 1200 - margin.left - margin.right,
             height = 500 - margin.top - margin.bottom;
 
         var svg = d3.select("#chart")
@@ -66,47 +73,71 @@ class Chart extends Component {
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            .attr("transform", "translate(" + (margin.left+30) + "," + margin.top + ")");
 
         // Transpose the data into layers
-        var dataset = d3.layout.stack()(["nodata", "nolevel"].map(function(y) {
+        var dataset = d3.layout.stack()(["nolevel","nodata"].map(function(y) {
             return data.map(function(d) {
+                
                 return {x: d.version, y: +d[y]};
             });
 
         }));
+        console.log("dataset : ", dataset)
 
         // Set x, y and colors
         var x = d3.scale.ordinal()
             .domain(dataset[0].map(function(d) { return d.x; }))
-            .rangeRoundBands([10, width-10], 0.02);
+            .rangeRoundBands([0, width], 0.05);
 
         var y = d3.scale.linear()
-            .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
+            .domain([0, d3.max(dataset, function(d) {
+                return d3.max(d, function(d) {
+                    // enhance dataset output
+                    for (var i = 0; i < dataset.length; i++) {
+                        for (var j = 0; j < dataset[i].length; j++) {
+                            if (!(dataset[i][j].y > 0)) {
+                                dataset[i][j].y = 0;
+
+                            }
+                            else if (!(dataset[i][j].y0 > 0)) {
+                                dataset[i][j].y0 = 0;
+                            }
+
+                            }   
+                        }
+                    return d.y0 + d.y;
+                });
+            })])
             .range([height, 0]);
 
-        var colors = ["#f2b447", "#d9d574"];
-
+        var colors = ["#63C09F", "#55A8BC"];
 
         // Define and draw axes
         var yAxis = d3.svg.axis()
             .scale(y)
             .orient("left")
-            .ticks(5)
-            .tickSize(0.5, 0.5)
+            .ticks(10)
+            .tickSize(-width, 0.5, 0.5)
+            .tickPadding(10)
             .tickFormat( function(d) { return d } );
 
         var xAxis = d3.svg.axis()
             .scale(x)
-            .orient("bottom").tickSize(0.5, 0.5)
+            .orient("bottom")
+            .tickSize(-width, 0.5, 0.5)
+            .tickPadding(10)
+
 
         svg.append("g")
+            .attr('class', 'grid')
             .attr("class", "y axis")
             .call(yAxis);
 
         svg.append("g")
+            .attr('class', 'grid')
             .attr("class", "x axis")
-            .attr("transform", "translate(-10," + height + ")")
+            .attr("transform", "translate(0," + height + ")")
             .call(xAxis);
 
         // Create groups for each series, rects for each segment
@@ -114,6 +145,7 @@ class Chart extends Component {
             .data(dataset)
             .enter().append("g")
             .attr("class", "product-group")
+            .attr('class', 'grid')
             .style("fill", function(d, i) { return colors[i]; });
 
         var rect = groups.selectAll("rect")
@@ -124,14 +156,7 @@ class Chart extends Component {
             .attr("y", function(d) { return y(d.y0 + d.y); })
             .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
             .attr("width", x.rangeBand)
-        // .on("mouseover", function() { tooltip.style("display", null); })
-        // .on("mouseout", function() { tooltip.style("display", "none"); })
-        // .on("mousemove", function(d) {
-        //   var xPosition = d3.mouse(this)[0] - 15;
-        //   var yPosition = d3.mouse(this)[1] - 25;
-        //   tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-        //   tooltip.select("text").text(d.y);
-        // });
+
         var legend = svg.selectAll(".legend")
             .data(colors)
             .enter().append("g")
@@ -142,7 +167,15 @@ class Chart extends Component {
             .attr("x", width - 18)
             .attr("width", 18)
             .attr("height", 18)
-            .style("fill", function(d, i) {return colors.slice().reverse()[i];});
+            .style("fill", function(d, i) {return colors.slice().reverse()[i];})
+            .on('mouseover',function(d){
+                d3.select(this)
+                  .attr('fill','blue');
+              })
+              .on('mouseout',function(d){
+                d3.select(this)
+                  .attr('fill','grey');
+              });
 
         legend.append("text")
             .attr("x", width + 5)
@@ -151,22 +184,31 @@ class Chart extends Component {
             .style("text-anchor", "start")
             .text(function(d, i) {
             switch (i) {
-                case 0: return "nolevel";
-                case 1: return "nodata";
+                case 0: return "nodata";
+                case 1: return "nolevel";
             }
         });
+
+        svg.append("text")
+        .attr("x", (width / 2))
+        .attr("y", 0 - (margin.top / 3))
+        .attr("text-anchor", "middle")
+        .style("font-size", "20px")
+        .text("Test Results");
 
     };
 
     render() {
+
         var style = {
             marginTop: '80px'
     };
 
+
     return (
 
         <div className="container" style={style}>
-            <form onSubmit={this.handleSubmit}>
+        <form onSubmit={this.handleSubmit}>
                 <div className="row">
                     <div className="col">
                         <div className="form-group">
@@ -178,6 +220,7 @@ class Chart extends Component {
                             </select>
                         </div>
                     </div>
+
                     <div className="col">
                         <div className="form-group">
                             <label>TEST SUITE</label>
@@ -190,6 +233,7 @@ class Chart extends Component {
                 </div>
                 <input type="submit" value="submit" className="btn btn-primary" style={{float: 'left'}}/>
             </form>
+            <br/>
             <br />
             <br />
             <hr />
@@ -198,29 +242,33 @@ class Chart extends Component {
                     <thead>
                     <tr>
                       <th>version</th>
-                      <th>nodata</th>
                       <th>nolevel</th>
+                      <th>nodata</th>
                     </tr>
                     </thead>
                     <tbody>
-                      {this.state.results.map((pro, i) => {
-                          return (
-                            <tr key={i.toString()}>
-                              <td>{pro.version}</td>
-                              <td>{pro.nodata}</td>
-                              <td>{pro.nolevel}</td>
-                            </tr>
-                          )
-                        }
-                      )}
+                        {this.state.results.map((pro, i) => {
+                            return (
+
+                                <tr key={i.toString()}>
+                                    <td>{pro.version}</td>
+                                    <td>{!(pro.nolevel>0) ? 0 : pro.nolevel}</td>
+                                    <td>{!(pro.nodata>0) ? 0 : pro.nodata}</td>
+                                </tr>
+
+                            )}
+                        )}
                     </tbody>
                 </table>
+
             </div>
-            <hr/>
             <div className="row">
               <div id="chart">
-
+                    {/* <ChildChart data={this.state.results} drawChart={this.drawChart}/> */}
               </div>
+            </div>
+            <div>
+                {/* <Test data={this.state.results}/> */}
             </div>
         </div>
         );
