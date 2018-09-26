@@ -149,12 +149,20 @@ class Chart extends Component {
       .text("Date");
 
         // Create groups for each series, rects for each segment
-        var groups = svg.selectAll("g.product-group")
+       var groups = svg.selectAll("g.product-group")
             .data(dataset)
             .enter().append("g")
             .attr("class", "product-group")
             .attr('class', 'grid')
-            .style("fill", function(d, i) { return colors[i]; });
+            .attr("fill", function(d, i) { return colors[i]; })
+            .on('mouseover',function(d){
+                d3.select(this)
+                  .attr('fill','blue');
+              })
+              .on('mouseout',function(d){
+                d3.select(this)
+                  .attr('fill',function(d, i) { return colors[i]; });
+              });
 
         var rect = groups.selectAll("rect")
             .data(function(d) { return d; })
