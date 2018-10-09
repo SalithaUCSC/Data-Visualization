@@ -236,7 +236,7 @@ class Chart extends Component {
                     <div className="col">
                         <div className="form-group">
                             <label><i className="fas fa-wrench"></i> PRODUCT</label>
-                            <select className="form-control" id="product-select" name="product_select" onChange={this.handleProdcutChange}>
+                            <select className="form-control" data-style="btn-primary" id="product-select" name="product_select" onChange={this.handleProdcutChange}>
                             {this.state.products.map((pro) =>
                                 <option key={pro} value={pro}>{pro}</option>
                             )}
@@ -254,8 +254,10 @@ class Chart extends Component {
                         </div>
                     </div>
                 </div>
-                <input type="submit" value="Find Results" className="btn btn-primary btn-sm" style={{float: 'left', marginLeft: '0px'}}/>
+                <button type="submit" value="" className="btn btn-outline-dark" style={{float: 'left', marginLeft: '0px'}}><i className="fas fa-search"></i> Find Results</button>
             </form>
+            <a className="btn btn-outline-dark download_btn" href="http://localhost:4000/api/download"><i className="far fa-file"></i> Download History</a>
+            {data.length > 0 ? <a className="btn btn-outline-info download_btn" href="http://localhost:4000/api/getSearch"><i className="fas fa-save"></i> save search</a> : null}
             <br/>
             <br />
             <br />
@@ -286,7 +288,7 @@ class Chart extends Component {
                                     <td>{pro.category}</td>
                                     <td>{!(pro.dataType>0) ? 0 : pro.dataType}</td>
                                     <td>{!(pro.nodataType>0) ? 0 : pro.nodataType}</td>
-                                    <td>{pro.dataType + pro.nodata}</td>
+                                    <td>{pro.dataType + pro.nodataType}</td>
                                 </tr>
 
                             )}
