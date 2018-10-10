@@ -1,3 +1,7 @@
+body {
+  font-family: 'Lato', sans-serif;
+}
+
 .App {
   text-align: center;
 }
@@ -25,4 +29,25 @@
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+.navbar {
+  background-color: #343C42 !important;
+}
+
+.btn-outline-dark {
+  border-color: #9EB2C0 !important;
+}
+
+.btn-outline-dark:hover {
+  border-color: #7D7F7F !important;
+}
+
+.form-group select {
+  border-color: #9EB2C0 !important;
+}
+
+.download_btn {
+  margin-left: 10px;
+  float: left;
 }
