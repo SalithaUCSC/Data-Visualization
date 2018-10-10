@@ -254,10 +254,10 @@ class Chart extends Component {
                         </div>
                     </div>
                 </div>
-                <button type="submit" value="" className="btn btn-outline-dark" style={{float: 'left', marginLeft: '0px'}}><i className="fas fa-search"></i> Find Results</button>
+                <button type="submit" value="" className="btn btn-outline-primary" style={{float: 'left', marginLeft: '0px'}}><i className="fas fa-search"></i> Find Results</button>
             </form>
-            <a className="btn btn-outline-dark download_btn" href="http://localhost:4000/api/download"><i className="far fa-file"></i> Download History</a>
-            {data.length > 0 ? <a className="btn btn-outline-info download_btn" href="http://localhost:4000/api/getSearch"><i className="fas fa-save"></i> save search</a> : null}
+            <a className="btn btn-outline-success download_btn" href="http://localhost:4000/api/download"><i className="far fa-file"></i> Download History</a>
+            {data.length > 0 ? <a className="btn btn-outline-info download_btn" href="http://localhost:4000/api/getSearch"><i className="fas fa-save"></i> Save Result</a> : null}
             <br/>
             <br />
             <br />
